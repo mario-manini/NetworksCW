@@ -60,41 +60,43 @@ public class Server {
                     	Integer count = Server.voteCounts.get(option); 
                     	output.println("'"+option+"'"+ " has "+count+" vote(s).");
 						}
+						logRequest(clientSocket.getInetAddress().toString(), "list");
+
 				}
 				else{
-                	voteOption = recievedInput; 
+                	voteOption = recievedInput;
+
+					if (voteOption != null && voteCounts.containsKey(voteOption)) { //Checks for a valid vote
+
+						synchronized (voteCounts) {
+							voteCounts.put(voteOption, voteCounts.get(voteOption) + 1);
+							// Increment vote count safely
+						}
+
+						// Log the valid request
+						logRequest(clientSocket.getInetAddress().toString(), "vote");
+
+						output.println("Vote for " + voteOption + " registered successfully.");
+					} else {
+						output.println("Invalid vote option. Please vote for a valid option.");
+					}
 				}
 
-                if (voteOption != null && voteCounts.containsKey(voteOption)) { //Checks for a valid vote
-
-                    synchronized (voteCounts) {
-                        voteCounts.put(voteOption, voteCounts.get(voteOption) + 1);  // Increment vote count safely
-                    }
-
-                    // Log the valid request
-                    logRequest(clientSocket.getInetAddress().toString(), voteOption);
-
-                    output.println("Vote for " + voteOption + " registered successfully.");
-                } else {
-                    output.println("Invalid vote option. Please vote for a valid option.");
-                }
-            } catch (IOException e) {
-                System.err.println("Error processing client connection: " + e.getMessage());
+            } catch (IOException error) {
+                System.err.println("Error processing client connection: " + error.getMessage());
             } finally {
                 try {
                     clientSocket.close();  // Close the client connection
-                } catch (IOException e) {
-                    System.err.println("Error closing client socket: " + e.getMessage());
+                } catch (IOException error) {
+                    System.err.println("Error closing client socket: " + error.getMessage());
                 }
             }
         }
 
         // Log the client request to the log file
-
-
+		
         private synchronized void logRequest(String clientIP, String request) {
             try (BufferedWriter writer = new BufferedWriter(new FileWriter("log.txt", true))) {
-
                 String currentDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
                 String currentTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("hh:mm:ss"));
                 String clientIpWithoutSlash = clientIP.startsWith("/") ? clientIP.substring(1) : clientIP;
@@ -102,8 +104,8 @@ public class Server {
                 String logEntry = currentDate + "|" + currentTime + "|" + clientIpWithoutSlash + "|" + request;
                 writer.write(logEntry);
                 writer.newLine();
-            } catch (IOException e) {
-                System.err.println("Error writing to log file: " + e.getMessage());
+            } catch (IOException error) {
+                System.err.println("Error writing to log file: " + error.getMessage());
             }
         }
     }
