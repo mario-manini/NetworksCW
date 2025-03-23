@@ -35,7 +35,7 @@ public class Server {
     }
 
 
-    static class ClientHandler implements Runnable {
+    static class ClientHandler implements Runnable { 
         private final Socket clientSocket;
 
         public ClientHandler(Socket socket) {
@@ -45,7 +45,7 @@ public class Server {
         @Override
         public void run() {
             try (
-                BufferedReader input = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+                BufferedReader input = new BufferedReader(new InputStreamReader(clientSocket.getInputStream())); //Chat GPT used to learn how to use sockets 
                 PrintWriter output = new PrintWriter(clientSocket.getOutputStream(), true)
             ) {
 
@@ -55,36 +55,39 @@ public class Server {
 				String recievedInput = input.readLine();
 				String voteOption = null;
 
-				if (recievedInput.equals("usage list")){
+				if (recievedInput.equals("usage list")){ //Printing out vote count and options if the client sends "list"
 					for (String option : Server.voteCounts.keySet()) {
                     	Integer count = Server.voteCounts.get(option); 
                     	output.println("'"+option+"'"+ " has "+count+" vote(s).");
 						}
+                    logRequest(clientSocket.getInetAddress().toString(), "list");
+
 				}
 				else{
                 	voteOption = recievedInput; 
-				}
+                    if (voteOption != null && voteCounts.containsKey(voteOption)) { //Checks for a valid vote
 
-                if (voteOption != null && voteCounts.containsKey(voteOption)) { //Checks for a valid vote
+                        synchronized (voteCounts) {  //Material from lecture 10 used to know which method to use
+                            voteCounts.put(voteOption, voteCounts.get(voteOption) + 1);  // Increment vote count 
+                        }
 
-                    synchronized (voteCounts) {
-                        voteCounts.put(voteOption, voteCounts.get(voteOption) + 1);  // Increment vote count safely
+                        // Log the valid request
+                        logRequest(clientSocket.getInetAddress().toString(), "vote");
+
+                        output.println("Vote for " + voteOption + " registered successfully.");
+                    } else {
+                        output.println("Invalid vote option. Please vote for a valid option.");
                     }
-
-                    // Log the valid request
-                    logRequest(clientSocket.getInetAddress().toString(), voteOption);
-
-                    output.println("Vote for " + voteOption + " registered successfully.");
-                } else {
-                    output.println("Invalid vote option. Please vote for a valid option.");
                 }
-            } catch (IOException e) {
-                System.err.println("Error processing client connection: " + e.getMessage());
+
+
+            } catch (IOException error) {
+                System.err.println("Error processing client connection: " + error.getMessage());
             } finally {
                 try {
-                    clientSocket.close();  // Close the client connection
-                } catch (IOException e) {
-                    System.err.println("Error closing client socket: " + e.getMessage());
+                    clientSocket.close(); 
+                } catch (IOException error) {
+                    System.err.println("Error closing client socket: " + error.getMessage());
                 }
             }
         }
@@ -92,8 +95,8 @@ public class Server {
         // Log the client request to the log file
 
 
-        private synchronized void logRequest(String clientIP, String request) {
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter("log.txt", true))) {
+        private synchronized void logRequest(String clientIP, String request) { //Material from lecture 10 used to know which method to use
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter("log.txt", true))) { //Chat GPT used to assist with knowing how to put data into a file
 
                 String currentDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
                 String currentTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("hh:mm:ss"));
@@ -102,8 +105,8 @@ public class Server {
                 String logEntry = currentDate + "|" + currentTime + "|" + clientIpWithoutSlash + "|" + request;
                 writer.write(logEntry);
                 writer.newLine();
-            } catch (IOException e) {
-                System.err.println("Error writing to log file: " + e.getMessage());
+            } catch (IOException error) {
+                System.err.println("Error writing to log file: " + error.getMessage());
             }
         }
     }

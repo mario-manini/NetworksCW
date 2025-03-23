@@ -13,7 +13,7 @@ public class Client {
 		String voteOption = null;
 		String usage = args[0];
 
-		if (args.length == 2){
+		if (args.length == 2){ //If there are two arguments, make the vote option the second one, unless the first argument is list, then return an error
         	voteOption = args[1];
 			if (usage.equals("list")){
 				System.err.println("Usage: java Client vote <option> or java Client list");
@@ -39,13 +39,13 @@ public class Client {
 				System.err.println("Invalid usage!");
             	System.exit(1);
 			}
-			String serverResponse = null;
+			String serverResponse = null; //While there are still lines from the server, read them and print them to the client
 			while ((serverResponse = in.readLine()) != null) {
                 System.out.println(serverResponse); 
             }
 
-        } catch (IOException e) {
-            System.err.println("Error connecting to server: " + e.getMessage());
+        } catch (IOException error) {
+            System.err.println("Error connecting to server: " + error.getMessage());
             System.exit(1);
         }
     }
