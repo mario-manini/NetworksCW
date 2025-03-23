@@ -29,8 +29,8 @@ public class Server {
                 Socket clientSocket = serverSocket.accept(); 
                 executorService.submit(new ClientHandler(clientSocket)); //Client Requests handled by the executor
             }
-        } catch (IOException e) {
-            System.err.println("Error while starting the server: " + e.getMessage());
+        } catch (IOException error) {
+            System.err.println("Error while starting the server: " + error.getMessage());
         }
     }
 
@@ -105,6 +105,8 @@ public class Server {
                 String logEntry = currentDate + "|" + currentTime + "|" + clientIpWithoutSlash + "|" + request;
                 writer.write(logEntry);
                 writer.newLine();
+            } catch (IOException error) {
+                System.err.println("Error writing to log file: " + error.getMessage());
             } catch (IOException error) {
                 System.err.println("Error writing to log file: " + error.getMessage());
             }
