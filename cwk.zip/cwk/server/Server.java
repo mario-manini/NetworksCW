@@ -107,8 +107,6 @@ public class Server {
                 writer.newLine();
             } catch (IOException error) {
                 System.err.println("Error writing to log file: " + error.getMessage());
-            } catch (IOException error) {
-                System.err.println("Error writing to log file: " + error.getMessage());
             }
         }
     }
